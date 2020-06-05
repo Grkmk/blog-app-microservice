@@ -12,24 +12,23 @@ app.use(cors());
 
 const posts = {};
 
-app
-  .route('/posts')
-  .get((req, res) => {
-    res.send(posts);
-  })
-  .post(async (req, res) => {
-    const id = randomBytes(4).toString('hex');
-    const { title } = req.body;
+app.get('/posts', (req, res) => {
+  res.send(posts);
+});
 
-    posts[id] = { id, title };
+app.post('/posts/create', async (req, res) => {
+  const id = randomBytes(4).toString('hex');
+  const { title } = req.body;
 
-    await axios.post('http://localhost:4005/events', {
-      type: 'PostCreated',
-      data: { id, title }
-    });
+  posts[id] = { id, title };
 
-    res.status(201).send(posts[id]);
+  await axios.post('http://event-bus-srv:4005/events', {
+    type: 'PostCreated',
+    data: { id, title }
   });
+
+  res.status(201).send(posts[id]);
+});
 
 app.post('/events', (req, res) => {
   console.log('Received Event', req.body.type);
